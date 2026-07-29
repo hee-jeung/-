@@ -1,0 +1,19 @@
+    def detect_date(self):
+
+        logger.info("Reading date")
+
+        for txt in self.all_text():
+
+            m = DATE_PATTERN.search(txt)
+
+            if m:
+
+                return m.group()
+
+            m = DATE_PATTERN2.search(txt)
+
+            if m:
+
+                return m.group()
+
+        return ""
