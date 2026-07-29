@@ -79,4 +79,228 @@ class KakaoController:
 
                 pass
 
+    # -------------------------------------------------
+    # 현재 열린 팝업 찾기
+    # -------------------------------------------------
+
+    def find_popup_window(self):
+
+        """
+        카카오 참석자 팝업 찾기
+
+        실제 UI에서는 팝업 Window가 별도로 생성됨
+        """
+
+        windows = Desktop(
+            backend="uia"
+        ).windows()
+
+        for win in windows:
+
+            try:
+
+                title = win.window_text()
+
+            except:
+
+                continue
+
+
+            # TODO
+            # 실제 팝업 이름 확인 후 수정 가능
+
+            if (
+                "참여" in title
+                or
+                "멤버" in title
+                or
+                "참석" in title
+            ):
+
+                return win
+
+
+        return None
+
+
+    # -------------------------------------------------
+    # 참석자 읽기
+    # -------------------------------------------------
+
+    def read_participants(self):
+
+        logger.info(
+            "Reading participants..."
+        )
+
+
+        popup = self.find_popup_window()
+
+
+        if popup is None:
+
+            logger.warning(
+                "Popup not found"
+            )
+
+            return []
+
+
+        result = []
+
+        controls = popup.descendants()
+
+
+        for obj in controls:
+
+            try:
+
+                text = obj.window_text().strip()
+
+            except:
+
+                continue
+
+
+            if not text:
+
+                continue
+
+
+            if self.is_valid_nickname(text):
+
+                result.append(text)
+
+
+
+        return self.remove_duplicate(
+            result
+        )
+
+
+    # -------------------------------------------------
+    # 닉네임 필터
+    # -------------------------------------------------
+
+    def is_valid_nickname(
+        self,
+        text
+    ):
+
+
+        exclude = [
+
+            "참여",
+            "확인",
+            "취소",
+            "닫기",
+            "초대",
+            "검색",
+            "프로필",
+            "채팅",
+            "멤버"
+
+        ]
+
+
+        for item in exclude:
+
+            if item in text:
+
+                return False
+
+
+
+        # 숫자만 있는 경우 제외
+
+        if text.isdigit():
+
+            return False
+
+
+
+        # 너무 긴 설명 문구 제외
+
+        if len(text) > 30:
+
+            return False
+
+
+
+        return True
+
+
+
+    # -------------------------------------------------
+    # 중복 제거
+    # -------------------------------------------------
+
+    def remove_duplicate(
+        self,
+        items
+    ):
+
+        result = []
+
+        checked = set()
+
+
+        for item in items:
+
+            if item in checked:
+
+                continue
+
+
+            checked.add(item)
+
+            result.append(item)
+
+
+        return result
+
+
+
+    # -------------------------------------------------
+    # 팝업 닫기
+    # -------------------------------------------------
+
+    def close_popup(self):
+
+        logger.info(
+            "Closing popup"
+        )
+
+
+        popup = self.find_popup_window()
+
+
+        if popup:
+
+            try:
+
+                popup.close()
+
+                time.sleep(
+                    0.5
+                )
+
+                return
+
+
+            except:
+
+                pass
+
+
+        # 실패하면 ESC
+
+        send_keys(
+            "{ESC}"
+        )
+
+        time.sleep(
+            0.5
+        )
+
         return result
