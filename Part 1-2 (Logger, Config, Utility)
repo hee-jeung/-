@@ -1,0 +1,113 @@
+import logging
+import re
+import time
+from datetime import datetime
+from pathlib import Path
+
+import pandas as pd
+import pyautogui
+
+from pywinauto import Desktop
+from pywinauto import Application
+from pywinauto.keyboard import send_keys
+from pywinauto.mouse import scroll
+
+# ==========================================================
+# CONFIG
+# ==========================================================
+
+OUTPUT_EXCEL = "kakao_schedule.xlsx"
+
+MAX_SCHEDULE_COUNT = 31
+
+CLICK_DELAY = 0.3
+POPUP_DELAY = 0.8
+SCROLL_DELAY = 0.5
+
+LOG_FILE = "collector.log"
+
+# ==========================================================
+# LOGGER
+# ==========================================================
+
+logger = logging.getLogger("Collector")
+
+logger.setLevel(logging.INFO)
+
+formatter = logging.Formatter(
+    "[%(asctime)s] %(levelname)s %(message)s",
+    "%H:%M:%S"
+)
+
+stream = logging.StreamHandler()
+stream.setFormatter(formatter)
+
+file_handler = logging.FileHandler(
+    LOG_FILE,
+    encoding="utf-8"
+)
+
+file_handler.setFormatter(formatter)
+
+logger.addHandler(stream)
+logger.addHandler(file_handler)
+
+# ==========================================================
+# REGEX
+# ==========================================================
+
+DATE_PATTERN = re.compile(
+    r"\d{4}\.\d{1,2}\.\d{1,2}"
+)
+
+DATE_PATTERN2 = re.compile(
+    r"\d{1,2}월\s*\d{1,2}일"
+)
+
+PARTICIPANT_PATTERN = re.compile(
+    r"\d+\s*명\s*참여"
+)
+
+# ==========================================================
+# EXCEL
+# ==========================================================
+
+class ExcelManager:
+
+    def __init__(self):
+
+        self.data = []
+
+        self.exist = set()
+
+    def append(self, date, nickname):
+
+        key = (
+            date.strip(),
+            nickname.strip()
+        )
+
+        if key in self.exist:
+            return
+
+        self.exist.add(key)
+
+        self.data.append(
+            {
+                "Date": date,
+                "Nickname": nickname
+            }
+        )
+
+    def save(self):
+
+        df = pd.DataFrame(self.data)
+
+        df.to_excel(
+            OUTPUT_EXCEL,
+            index=False
+        )
+
+        logger.info(
+            f"Saved {len(df)} rows."
+        )
