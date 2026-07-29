@@ -1,0 +1,27 @@
+    def find_participant_button(self):
+
+        logger.info("Searching participant button")
+
+        for obj in self.descendants():
+
+            try:
+
+                text = obj.window_text()
+
+            except:
+
+                continue
+
+            if not text:
+
+                continue
+
+            if PARTICIPANT_PATTERN.search(text):
+
+                logger.info(
+                    f"Found : {text}"
+                )
+
+                return obj
+
+        return None
