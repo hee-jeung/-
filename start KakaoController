@@ -1,0 +1,82 @@
+class KakaoController:
+
+    def __init__(self):
+
+        self.app = None
+
+        self.window = None
+
+        self.excel = ExcelManager()
+
+    # -------------------------------------------------
+
+    def connect(self):
+
+        logger.info(
+            "Connecting KakaoTalk..."
+        )
+
+        self.app = (
+            Application(
+                backend="uia"
+            )
+            .connect(
+                title_re=".*카카오톡.*"
+            )
+        )
+
+        self.window = self.app.top_window()
+
+        self.window.set_focus()
+
+        logger.info("Connected.")
+
+    # -------------------------------------------------
+
+    def activate(self):
+
+        self.window.restore()
+
+        self.window.set_focus()
+
+        time.sleep(1)
+
+    # -------------------------------------------------
+
+    def dump(self):
+
+        """
+        개발용
+
+        현재 UI 출력
+        """
+
+        self.window.print_control_identifiers()
+
+    # -------------------------------------------------
+
+    def descendants(self):
+
+        return self.window.descendants()
+
+    # -------------------------------------------------
+
+    def all_text(self):
+
+        result = []
+
+        for obj in self.descendants():
+
+            try:
+
+                txt = obj.window_text()
+
+                if txt:
+
+                    result.append(txt)
+
+            except:
+
+                pass
+
+        return result
