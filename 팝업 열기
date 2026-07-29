@@ -1,0 +1,17 @@
+    def open_popup(self):
+
+        button = self.find_participant_button()
+
+        if button is None:
+
+            logger.warning(
+                "Participant button not found."
+            )
+
+            return False
+
+        button.click_input()
+
+        time.sleep(POPUP_DELAY)
+
+        return True
